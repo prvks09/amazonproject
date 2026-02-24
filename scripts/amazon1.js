@@ -1,8 +1,21 @@
-import { cart } from "../data/cart.js";
+import { cart, addToCart } from "../data/cart.js";
 import { products } from "../data/products.js";
-let productsHTML = document.querySelector(".js-products-grid");
 
-loadQuantity();
+function createDiv(classes, text = "") {
+  const div = document.createElement("div");
+  div.classList.add(...[].concat(classes));
+  if (text) div.textContent = text;
+  return div;
+}
+
+function createImg(classes, src, alt = "") {
+  const img = document.createElement("img");
+  img.classList.add(...[].concat(classes));
+  img.src = src;
+  img.alt = alt;
+  return img;
+}
+
 function loadQuantity() {
   let cartQuantity = 0;
   cart.forEach((item) => {
@@ -11,37 +24,49 @@ function loadQuantity() {
   document.querySelector(".cart-quantity").innerText = cartQuantity;
 }
 
-products.forEach((product) => {
+// --- Product Card Builder ---
+
+function createProductCard(product) {
   const productContainer = document.createElement("div");
+
+  // Image
   productContainer.className = "product-container";
   const imageContainer = document.createElement("div");
   imageContainer.className = "product-image-container";
   const img = document.createElement("img");
   img.className = "product-image";
   img.src = product.image;
+  img.alt = product.name;
   imageContainer.appendChild(img);
   productContainer.appendChild(imageContainer);
+
+  // Name
   const productName = document.createElement("div");
   productName.classList.add("product-name", "limit-text-to-2-lines");
   productName.textContent = product.name;
   productContainer.appendChild(productName);
 
+  // Rating
   const productRatingContainer = document.createElement("div");
   productRatingContainer.classList.add("product-rating-container");
   const ratingStar = document.createElement("img");
   ratingStar.classList.add("product-rating-stars");
   ratingStar.src = `images/ratings/rating-${product.rating.stars * 10}.png`;
+  ratingStar.alt = `${product.rating.stars} stars`;
   const ratingCount = document.createElement("div");
   ratingCount.classList.add("product-rating-count", "link-primary");
   ratingCount.textContent = product.rating.count;
   productRatingContainer.append(ratingStar, ratingCount);
   productContainer.appendChild(productRatingContainer);
 
+  // Price
+
   const productPriceContainer = document.createElement("div");
   productPriceContainer.classList.add("product-price");
   productPriceContainer.innerText = `$${(product.priceCents / 100).toFixed(2)}`;
   productContainer.appendChild(productPriceContainer);
 
+  // Quantity Selector
   const productQuantityContainer = document.createElement("div");
   productQuantityContainer.classList.add(
     "product-quantity-container",
@@ -61,7 +86,6 @@ products.forEach((product) => {
     option.innerText = i;
     if (i === 1) {
       option.selected = true;
-      option.setAttribute("selected", "selected"); //this is redundant and above option.selected must be used
     }
     selectQuantity.append(option);
   }
@@ -69,19 +93,22 @@ products.forEach((product) => {
   productQuantityContainer.append(selectQuantity);
   productContainer.append(productQuantityContainer);
 
+  // Spacer
   const productSpacer = document.createElement("div");
   productSpacer.classList.add("product-spacer");
   productContainer.append(productSpacer);
 
+  // Added to Cart Feedback
   const addedToCart = document.createElement("div");
   addedToCart.classList.add("added-to-cart", `added-to-cart-${product.id}`);
   const imgCheckBox = document.createElement("img");
   imgCheckBox.src = "images/icons/checkmark.png";
+  imgCheckBox.alt = "Added to cart checkmark";
   addedToCart.append(imgCheckBox, "Added to Cart");
   productContainer.append(addedToCart);
 
+  // Add to Cart Button
   const addToCartButton = document.createElement("button");
-
   addToCartButton.classList.add(
     "add-to-cart-button",
     "js-add-to-cart-button",
@@ -99,22 +126,9 @@ products.forEach((product) => {
     const selectedQuantity = parseInt(
       parentContainer.querySelector("select").value,
     );
-    console.log("Quantity ", selectedQuantity);
 
-    const matchingItem = cart.find((item) => item.productId === productId);
-
-    if (matchingItem) {
-      matchingItem.quantity += selectedQuantity;
-    } else {
-      cart.push({
-        productId: productId,
-        // productName: productName,
-        quantity: selectedQuantity,
-      });
-    }
-
-    console.log(cart);
-    loadQuantity();
+    addToCart(productId, selectedQuantity);
+    // loadQuantity();
 
     const addedToCartEl = parentContainer.querySelector(".added-to-cart");
 
@@ -122,16 +136,28 @@ products.forEach((product) => {
 
     if (btn.timerId) {
       clearTimeout(btn.timerId);
-      console.log("cleared timer   ", btn.timerId);
     }
 
     btn.timerId = setTimeout(() => {
-      console.log(" timed  out  ", btn.timerId);
       addedToCartEl.classList.remove("itemAdded");
       btn.timerId = null;
     }, 3000);
   });
 
   productContainer.append(addToCartButton);
-  productsHTML.appendChild(productContainer);
-});
+
+  return productContainer;
+}
+
+// --- Load Products ---
+function loadProducts() {
+  loadQuantity();
+  const productsGridEl = document.querySelector(".js-products-grid");
+  productsGridEl.innerHTML = ""; // clear before loading
+  products.forEach((product) => {
+    const card = createProductCard(product);
+    productsGridEl.appendChild(card);
+  });
+}
+
+loadProducts();
