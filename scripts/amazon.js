@@ -1,3 +1,6 @@
+import { cart } from "../data/cart.js";
+import { products } from "../data/products.js";
+
 let productsHTML = "";
 
 loadQuantity();
@@ -32,8 +35,8 @@ products.forEach((product) => {
 
   <div class="product-price">$${(product.priceCents / 100).toFixed(2)}</div>
 
-  <div class="product-quantity-container">
-    <select>
+  <div class="product-quantity-container product-quantity-container-${product.id}">
+    <select class = "select-quantity select-quantity-${product.id}">
       <option selected value="1">1</option>
       <option value="2">2</option>
       <option value="3">3</option>
@@ -49,7 +52,7 @@ products.forEach((product) => {
 
   <div class="product-spacer"></div>
 
-  <div class="added-to-cart">
+  <div class="added-to-cart added-to-cart-${product.id}">
     <img src="images/icons/checkmark.png" />
     Added
   </div>
@@ -62,13 +65,18 @@ products.forEach((product) => {
 /*
 document.querySelector('.js-products-grid').append(productsHTML); // This will not work 
 */
-document.querySelector(".js-products-grid").innerHTML += productsHTML; // Use this or below recommended
+document.querySelector(".js-products-grid").innerHTML += productsHTML;
 
 document.querySelectorAll(".js-add-to-cart-button").forEach((button) => {
   button.addEventListener("click", () => {
     const productId = button.dataset.productId;
 
     let matchingItem;
+    const parent = button.parentElement;
+    const select = parent.querySelector(".select-quantity");
+    quantity = parseInt(select.value, 10);
+
+    console.log("quantity", quantity);
 
     cart.forEach((item) => {
       if (productId === item.productId) {
@@ -77,12 +85,12 @@ document.querySelectorAll(".js-add-to-cart-button").forEach((button) => {
     });
 
     if (matchingItem) {
-      matchingItem.quantity += 1;
+      matchingItem.quantity += quantity;
     } else {
       cart.push({
         productId: productId,
         // productName: productName,
-        quantity: 1,
+        quantity: quantity,
       });
     }
 
@@ -94,5 +102,15 @@ document.querySelectorAll(".js-add-to-cart-button").forEach((button) => {
     console.log(cart);
     console.log(cartQuantity);
     document.querySelector(".cart-quantity").innerText = cartQuantity;
+
+    document
+      .querySelector(`.added-to-cart-${productId}`)
+      .classList.add("itemAdded");
+
+    setTimeout(() => {
+      document
+        .querySelector(`.added-to-cart-${productId}`)
+        .classList.remove("itemAdded");
+    }, 10000);
   });
 });
