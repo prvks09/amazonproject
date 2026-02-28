@@ -1,0 +1,102 @@
+import { cart, loadCart } from "../data/cart.js";
+import { products } from "../data/products.js";
+
+let cartDeleteIt = loadCart(); //{iimporting cart is not working somehow need to replace cartDeleteIt with cart and dele this declaration and import load}
+// When the module is loaded the cart has already been populated via
+// loadCart() in data/cart.js.  There's no need to call loadCart() here;
+// simply import the cart object and use it.  Also wait until the DOM is
+// ready before touching elements.
+
+console.log("items in cart ", cartDeleteIt);
+
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", createCartProductCard);
+  } else {
+    createCartProductCard();
+  }
+}
+
+function createCartProductCard() {
+  const productsHTML = document.querySelector(".order-summary");
+  console.log("Inside createCartProductCard");
+  if (!productsHTML) return; // nothing to fill on this page
+
+  // build lookup map instead of nested loops
+  const productMap = new Map(products.map((p) => [p.id, p]));
+
+  cartDeleteIt.forEach((cartItem) => {
+    const product = productMap.get(cartItem.productId);
+    if (!product) return;
+
+    const cartItemContainer = `<div class="cart-item-container">
+            <div class="delivery-date">Delivery date: Tuesday, June 21</div>
+
+            <div class="cart-item-details-grid">
+              <img
+                class="product-image"
+                src="${product.image}"
+              />
+
+              <div class="cart-item-details">
+                <div class="product-name">
+                  ${product.name}
+                </div>
+                <div class="product-price">$${(product.priceCents / 100).toFixed(2)}</div>
+                <div class="product-quantity">
+                  <span> Quantity: <span class="quantity-label">${cartItem.quantity}</span> </span>
+                  <span class="update-quantity-link link-primary">
+                    Update
+                  </span>
+                  <span class="delete-quantity-link link-primary">
+                    Delete
+                  </span>
+                </div>
+              </div>
+
+              <div class="delivery-options">
+                <div class="delivery-options-title">
+                  Choose a delivery option:
+                </div>
+                <div class="delivery-option">
+                  <input
+                    type="radio"
+                    checked
+                    class="delivery-option-input"
+                    name="delivery-option-${cartItem.productId}"
+                  />
+                  <div>
+                    <div class="delivery-option-date">Tuesday, June 21</div>
+                    <div class="delivery-option-price">FREE Shipping</div>
+                  </div>
+                </div>
+                <div class="delivery-option">
+                  <input
+                    type="radio"
+                    class="delivery-option-input"
+                    name="delivery-option-${cartItem.productId}"
+                  />
+                  <div>
+                    <div class="delivery-option-date">Wednesday, June 15</div>
+                    <div class="delivery-option-price">$4.99 - Shipping</div>
+                  </div>
+                </div>
+                <div class="delivery-option">
+                  <input
+                    type="radio"
+                    class="delivery-option-input"
+                    name="delivery-option-${cartItem.productId}"
+                  />
+                  <div>
+                    <div class="delivery-option-date">Monday, June 13</div>
+                    <div class="delivery-option-price">$9.99 - Shipping</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+
+    console.log(cartItemContainer);
+    productsHTML.insertAdjacentHTML("beforeend", cartItemContainer);
+  });
+}

@@ -128,7 +128,7 @@ function createProductCard(product) {
     );
 
     addToCart(productId, selectedQuantity);
-    // loadQuantity();
+    loadQuantity();
 
     const addedToCartEl = parentContainer.querySelector(".added-to-cart");
 
@@ -160,4 +160,21 @@ function loadProducts() {
   });
 }
 
-loadProducts();
+// Initialize only when the products grid exists and DOM is ready
+function initProducts() {
+  const productsGridEl = document.querySelector(".js-products-grid");
+  if (productsGridEl) {
+    loadProducts();
+  } else {
+    console.warn("Products grid not found, skipping initialization.");
+  }
+}
+
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initProducts);
+  } else {
+    initProducts();
+    console.log("cart initial:  ", cart);
+  }
+}
