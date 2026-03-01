@@ -1,15 +1,19 @@
-import { cart } from "../data/cart.js";
+import { loadCart, addToCart } from "../data/cart.js";
 import { products } from "../data/products.js";
 
 let productsHTML = "";
 
 loadQuantity();
 function loadQuantity() {
+  const el = document.querySelector(".cart-quantity");
+  if (!el) return;
+
+  const cart = loadCart();
   let cartQuantity = 0;
   cart.forEach((item) => {
     cartQuantity += item.quantity;
   });
-  document.querySelector(".cart-quantity").innerText = cartQuantity;
+  el.innerText = cartQuantity;
 }
 
 products.forEach((product) => {
@@ -71,37 +75,24 @@ document.querySelectorAll(".js-add-to-cart-button").forEach((button) => {
   button.addEventListener("click", () => {
     const productId = button.dataset.productId;
 
-    let matchingItem;
     const parent = button.parentElement;
     const select = parent.querySelector(".select-quantity");
-    quantity = parseInt(select.value, 10);
+    const quantity = parseInt(select.value, 10);
 
     console.log("quantity", quantity);
 
-    cart.forEach((item) => {
-      if (productId === item.productId) {
-        matchingItem = item;
-      }
-    });
+    // delegate all mutation to the shared API; it returns the updated cart
+    const cart = addToCart(productId, quantity);
 
-    if (matchingItem) {
-      matchingItem.quantity += quantity;
-    } else {
-      cart.push({
-        productId: productId,
-        // productName: productName,
-        quantity: quantity,
-      });
-    }
-
+    // update quantity indicator using the fresh cart data
     let cartQuantity = 0;
     cart.forEach((item) => {
       cartQuantity += item.quantity;
     });
-
-    console.log(cart);
-    console.log(cartQuantity);
-    document.querySelector(".cart-quantity").innerText = cartQuantity;
+    const qtyEl = document.querySelector(".cart-quantity");
+    if (qtyEl) {
+      qtyEl.innerText = cartQuantity;
+    }
 
     document
       .querySelector(`.added-to-cart-${productId}`)

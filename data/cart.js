@@ -1,6 +1,26 @@
-export const cart = loadCart();
+// do **not** export a single mutable cart instance.  Always read a fresh copy
+// from localStorage when you need the current state.  This prevents the stale
+// data issue [TEST-7]s described earlier.
 
-// optionally export loadCart if some consumers need to refresh	export { loadCart };
+// storage key constant must exist before any function references it
+const STORAGE_KEY = "cart";
+
+// convenience function used internally and by consumers
+export function loadCartFromStorage() {
+  try {
+    console.log("inside try, ", JSON.parse(localStorage.getItem(STORAGE_KEY)));
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+// note: we keep initCart for debugging but it no longer runs on module load
+// since there is no exported `cart` variable to pass.
+// initCart(loadCartFromStorage());
+
+// optionally export loadCart if some consumers need to refresh
+// (it's already exported above)
 
 // export const cart = [
 //   {
@@ -13,26 +33,31 @@ export const cart = loadCart();
 //   },
 // ];
 
-// data/cart.js
-const STORAGE_KEY = "cart";
+function initCart(cart) {
+  console.log("Inside cartMap cart variable: ", cart);
 
-export function loadCart() {
-  try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-  } catch {
-    return [];
+  let cartMap = new Map(cart.map((cart) => [cart.productId, cart.quantity]));
+  console.log("Inside cartMap: ", cartMap);
+
+  // Show all items
+  for (let [productId, quantity] of cartMap.entries()) {
+    console.log("Product:", productId, "Quantity:", quantity);
   }
 }
 
-function saveCart() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
-
-  console.log("saving cart in local ", cart);
+// when we save, we require the caller to provide the cart array so there is
+// no hidden dependency on a module‑scoped variable.
+export function saveCart(newCart) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(newCart));
+  console.log("saving cart in local ", newCart);
 }
 
 // export function removeFromCart(productId) { … } // etc.
 
 export function addToCart(productId, selectedQuantity) {
+  // always operate on the latest cart from storage
+  const cart = loadCartFromStorage();
+
   const matchingItem = cart.find(
     (cartItem) => cartItem.productId === productId,
   );
@@ -42,12 +67,12 @@ export function addToCart(productId, selectedQuantity) {
   } else {
     cart.push({
       productId: productId,
-      // productName: productName,
       quantity: selectedQuantity,
     });
   }
-  console.log("cart item pushed", productId, selectedQuantity);
 
+  console.log("cart item pushed", productId, selectedQuantity);
   console.log("Total Cart Quantity list ", cart);
-  saveCart();
+  saveCart(cart);
+  return cart; // return new array for convenience if caller wants it
 }

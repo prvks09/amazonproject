@@ -1,13 +1,10 @@
-import { cart, loadCart } from "../data/cart.js";
+import { loadCartFromStorage } from "../data/cart.js";
 import { products } from "../data/products.js";
+import { formatCurrency } from "./utils/money.js";
 
-let cartDeleteIt = loadCart(); //{iimporting cart is not working somehow need to replace cartDeleteIt with cart and dele this declaration and import load}
-// When the module is loaded the cart has already been populated via
-// loadCart() in data/cart.js.  There's no need to call loadCart() here;
-// simply import the cart object and use it.  Also wait until the DOM is
-// ready before touching elements.
-
-console.log("items in cart ", cartDeleteIt);
+// don't keep a separate copy; always call loadCartFromStorage() when you need the
+// current contents.  The previous `cartDeleteIt` and imported `cart` were
+// different instances and led to stale data.
 
 if (typeof document !== "undefined") {
   if (document.readyState === "loading") {
@@ -25,7 +22,8 @@ function createCartProductCard() {
   // build lookup map instead of nested loops
   const productMap = new Map(products.map((p) => [p.id, p]));
 
-  cartDeleteIt.forEach((cartItem) => {
+  const cart = loadCartFromStorage();
+  cart.forEach((cartItem) => {
     const product = productMap.get(cartItem.productId);
     if (!product) return;
 
@@ -42,7 +40,7 @@ function createCartProductCard() {
                 <div class="product-name">
                   ${product.name}
                 </div>
-                <div class="product-price">$${(product.priceCents / 100).toFixed(2)}</div>
+                <div class="product-price">$${formatCurrency(product.priceCents)}</div>
                 <div class="product-quantity">
                   <span> Quantity: <span class="quantity-label">${cartItem.quantity}</span> </span>
                   <span class="update-quantity-link link-primary">

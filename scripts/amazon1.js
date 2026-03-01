@@ -1,5 +1,6 @@
-import { cart, addToCart } from "../data/cart.js";
+import { addToCart, loadCartFromStorage } from "../data/cart.js";
 import { products } from "../data/products.js";
+import { formatCurrency } from "./utils/money.js";
 
 function createDiv(classes, text = "") {
   const div = document.createElement("div");
@@ -16,12 +17,19 @@ function createImg(classes, src, alt = "") {
   return img;
 }
 
-function loadQuantity() {
+export function loadQuantity() {
+  const el = document.querySelector(".cart-quantity");
+  if (!el) {
+    // nothing to update on this page
+    return;
+  }
+
+  const cart = loadCartFromStorage();
   let cartQuantity = 0;
   cart.forEach((item) => {
     cartQuantity += item.quantity;
   });
-  document.querySelector(".cart-quantity").innerText = cartQuantity;
+  el.innerText = cartQuantity;
 }
 
 // --- Product Card Builder ---
@@ -63,7 +71,7 @@ function createProductCard(product) {
 
   const productPriceContainer = document.createElement("div");
   productPriceContainer.classList.add("product-price");
-  productPriceContainer.innerText = `$${(product.priceCents / 100).toFixed(2)}`;
+  productPriceContainer.innerText = `$${formatCurrency(product.priceCents)}`;
   productContainer.appendChild(productPriceContainer);
 
   // Quantity Selector
@@ -151,7 +159,6 @@ function createProductCard(product) {
 
 // --- Load Products ---
 function loadProducts() {
-  loadQuantity();
   const productsGridEl = document.querySelector(".js-products-grid");
   productsGridEl.innerHTML = ""; // clear before loading
   products.forEach((product) => {
@@ -173,8 +180,9 @@ function initProducts() {
 if (typeof document !== "undefined") {
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initProducts);
+    document.addEventListener("DOMContentLoaded", loadQuantity);
   } else {
     initProducts();
-    console.log("cart initial:  ", cart);
+    loadQuantity();
   }
 }
