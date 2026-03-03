@@ -76,3 +76,53 @@ export function addToCart(productId, selectedQuantity) {
   saveCart(cart);
   return cart; // return new array for convenience if caller wants it
 }
+
+export function removeProductFromCart(productId) {
+  // always operate on the latest cart from storage
+  const cart = loadCartFromStorage();
+
+  // const matchingItem = cart.find(
+  //   (cartItem) => cartItem.productId === productId,
+  // );
+
+  const newCart = cart.filter((cartItem) => cartItem.productId !== productId);
+  if (newCart.length === cart.length) {
+    console.log("item not found");
+    return;
+  }
+  saveCart(newCart);
+
+  console.log("Total Cart Quantity list ", newCart);
+  return newCart; // return new array for convenience if caller wants it
+}
+
+export const deliveryOptions = [
+  {
+    id: 0,
+    deliveryDays: 7,
+    priceCents: 0,
+    priceLabel: "FREE Shipping",
+  },
+  {
+    id: 1,
+    deliveryDays: 3,
+    priceCents: 499,
+    priceLabel: "$4.99 - Shipping",
+  },
+  {
+    id: 2,
+    deliveryDays: 1,
+    priceCents: 999,
+    priceLabel: "$9.99 - Shipping",
+  },
+];
+
+export function getDeliveryDate(deliveryDays) {
+  const date = new Date();
+  date.setDate(date.getDate() + deliveryDays);
+  return date.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  });
+}
